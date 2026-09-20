@@ -1,0 +1,421 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum DataScope {
+  OWN
+  TEAM
+  DEPARTMENT
+  ALL
+}
+
+enum OverrideEffect {
+  ALLOW
+  DENY
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  OTHER
+}
+
+enum EmployeeDocumentType {
+  NID
+  PHOTOGRAPH
+  CV
+  EDUCATIONAL_CERTIFICATE
+  APPOINTMENT_LETTER
+  JOINING_DOCUMENT
+  OTHER
+}
+
+enum ActivityType {
+  CALL
+  MESSAGE
+  MEETING
+  EMAIL
+  NOTE
+  FOLLOW_UP
+}
+
+model Department {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String       @unique
+  name        String
+  description String?
+  sortOrder   Int          @default(0) @map("sort_order")
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+  teams       Team[]
+  users       User[]
+  employees   Employee[]
+
+  @@map("departments")
+}
+
+model Team {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key          String       @unique
+  name         String
+  description  String?
+  sortOrder    Int          @default(0) @map("sort_order")
+  departmentId String       @map("department_id") @db.Uuid
+  status       RecordStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  users        User[]
+  employees    Employee[]
+
+  @@index([departmentId])
+  @@map("teams")
+}
+
+model User {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName            String        @default("User") @map("full_name")
+  email               String        @unique
+  username            String        @unique
+  mobile              String        @default("01700000000")
+  passwordHash        String        @map("password_hash")
+  photoUrl            String?       @map("photo_url")
+  status              UserStatus    @default(ACTIVE)
+  departmentId        String?       @map("department_id") @db.Uuid
+  teamId              String?       @map("team_id") @db.Uuid
+  primaryRoleId       String?       @map("primary_role_id") @db.Uuid
+  failedLoginAttempts Int           @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?     @map("locked_until")
+  lastLoginAt         DateTime?     @map("last_login_at")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  department          Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  team                Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  primaryRole         Role?         @relation("UserPrimaryRole", fields: [primaryRoleId], references: [id], onDelete: Restrict)
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  permissionOverrides UserPermissionOverride[]
+  dataScopes          UserDataScope[]
+  roleHistory         RoleHistory[]          @relation("RoleHistoryUser")
+  roleChangesMade     RoleHistory[]          @relation("RoleHistoryActor")
+  permissionHistory   PermissionHistory[]    @relation("PermissionHistoryUser")
+  permissionChangesMade PermissionHistory[]  @relation("PermissionHistoryActor")
+  auditLogs           AuditLog[]
+  activities          Activity[]
+  masterDataCreated   MasterDataItem[]       @relation("MasterDataCreatedBy")
+  masterDataUpdated   MasterDataItem[]       @relation("MasterDataUpdatedBy")
+  employee            Employee?
+
+  @@index([primaryRoleId])
+  @@index([departmentId])
+  @@index([teamId])
+  @@index([status])
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key         String           @unique
+  name        String
+  description String?
+  status      RecordStatus     @default(ACTIVE)
+  isSystem    Boolean          @default(false) @map("is_system")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
+  users       User[]           @relation("UserPrimaryRole")
+  employees   Employee[]       @relation("EmployeeRole")
+  permissions RolePermission[]
+  historyFrom RoleHistory[]    @relation("RoleHistoryFrom")
+  historyTo   RoleHistory[]    @relation("RoleHistoryTo")
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  module      String                   @default("General")
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime                 @default(now()) @map("created_at")
+  roles       RolePermission[]
+  overrides   UserPermissionOverride[]
+  history     PermissionHistory[]
+
+  @@unique([resource, action])
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserPermissionOverride {
+  userId       String         @map("user_id") @db.Uuid
+  permissionId String         @map("permission_id") @db.Uuid
+  effect       OverrideEffect
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @default(now()) @updatedAt @map("updated_at")
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permission_overrides")
+}
+
+model UserDataScope {
+  userId    String    @map("user_id") @db.Uuid
+  resource  String
+  scope     DataScope
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, resource])
+  @@map("user_data_scopes")
+}
+
+model RoleHistory {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  fromRoleId   String?  @map("from_role_id") @db.Uuid
+  toRoleId     String   @map("to_role_id") @db.Uuid
+  changedById  String?  @map("changed_by_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation("RoleHistoryUser", fields: [userId], references: [id], onDelete: Cascade)
+  fromRole     Role?    @relation("RoleHistoryFrom", fields: [fromRoleId], references: [id], onDelete: SetNull)
+  toRole       Role     @relation("RoleHistoryTo", fields: [toRoleId], references: [id], onDelete: Restrict)
+  changedBy    User?    @relation("RoleHistoryActor", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("role_history")
+}
+
+model PermissionHistory {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String?         @map("user_id") @db.Uuid
+  roleId         String?         @map("role_id") @db.Uuid
+  permissionId   String          @map("permission_id") @db.Uuid
+  previousEffect String?         @map("previous_effect")
+  newEffect      String          @map("new_effect")
+  changedById    String?         @map("changed_by_id") @db.Uuid
+  createdAt      DateTime        @default(now()) @map("created_at")
+  user           User?           @relation("PermissionHistoryUser", fields: [userId], references: [id], onDelete: Cascade)
+  permission     Permission      @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  changedBy      User?           @relation("PermissionHistoryActor", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([roleId])
+  @@map("permission_history")
+}
+
+model Session {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  tokenHash    String    @unique @map("token_hash")
+  expiresAt    DateTime  @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent") @db.Text
+  lastActiveAt DateTime  @default(now()) @map("last_active_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model MasterDataItem {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryKey    String          @map("category_key")
+  name           String
+  nameNormalized String          @map("name_normalized")
+  code           String?
+  description    String?
+  parentId       String?         @map("parent_id") @db.Uuid
+  status         RecordStatus    @default(ACTIVE)
+  sortOrder      Int             @default(0) @map("sort_order")
+  isSystem       Boolean         @default(false) @map("is_system")
+  behaviorKey    String?         @map("behavior_key")
+  extras         Json?
+  createdById    String?         @map("created_by_id") @db.Uuid
+  updatedById    String?         @map("updated_by_id") @db.Uuid
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  parent         MasterDataItem? @relation("MasterDataTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children       MasterDataItem[] @relation("MasterDataTree")
+  createdBy      User?           @relation("MasterDataCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy      User?           @relation("MasterDataUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  designationEmployees      Employee[] @relation("EmployeeDesignation")
+  employmentTypeEmployees   Employee[] @relation("EmployeeEmploymentType")
+  employmentStatusEmployees Employee[] @relation("EmployeeEmploymentStatus")
+
+  @@unique([categoryKey, nameNormalized])
+  @@unique([categoryKey, code])
+  @@index([categoryKey, status, sortOrder])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("master_data_items")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String?  @map("user_id") @db.Uuid
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent") @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Activity {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type         ActivityType
+  userId       String       @map("user_id") @db.Uuid
+  occurredAt   DateTime     @default(now()) @map("occurred_at")
+  durationMin  Int?         @map("duration_min")
+  outcome      String?
+  notes        String?      @db.Text
+  relatedName  String?      @map("related_name")
+  relatedType  String?      @map("related_type")
+  relatedId    String?      @map("related_id")
+  nextAction   String?      @map("next_action")
+  nextDate     DateTime?    @map("next_date")
+  ipAddress    String?      @map("ip_address")
+  userAgent    String?      @map("user_agent") @db.Text
+  metadata     Json?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([type])
+  @@index([occurredAt])
+  @@index([relatedType, relatedId])
+  @@map("activities")
+}
+
+model Employee {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeCode          String          @unique @map("employee_code")
+  fullName              String          @map("full_name")
+  gender                Gender?
+  dateOfBirth           DateTime?       @map("date_of_birth") @db.Date
+  nationality           String?
+  identityNumber        String?         @map("identity_number")
+  maritalStatus         MaritalStatus?  @map("marital_status")
+  mobile                String
+  personalEmail         String?         @map("personal_email")
+  officialEmail         String          @unique @map("official_email")
+  presentAddress        String?         @map("present_address") @db.Text
+  permanentAddress      String?         @map("permanent_address") @db.Text
+  photoUrl              String?         @map("photo_url")
+  designationId         String          @map("designation_id") @db.Uuid
+  departmentId          String          @map("department_id") @db.Uuid
+  teamId                String?         @map("team_id") @db.Uuid
+  roleId                String?         @map("role_id") @db.Uuid
+  employmentTypeId      String          @map("employment_type_id") @db.Uuid
+  employmentStatusId    String          @map("employment_status_id") @db.Uuid
+  reportingManagerId    String?         @map("reporting_manager_id") @db.Uuid
+  joiningDate           DateTime        @map("joining_date") @db.Date
+  emergencyName         String?         @map("emergency_name")
+  emergencyRelationship String?         @map("emergency_relationship")
+  emergencyMobile       String?         @map("emergency_mobile")
+  emergencyAddress      String?         @map("emergency_address") @db.Text
+  userId                String?         @unique @map("user_id") @db.Uuid
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+  designation           MasterDataItem  @relation("EmployeeDesignation", fields: [designationId], references: [id], onDelete: Restrict)
+  employmentType        MasterDataItem  @relation("EmployeeEmploymentType", fields: [employmentTypeId], references: [id], onDelete: Restrict)
+  employmentStatus      MasterDataItem  @relation("EmployeeEmploymentStatus", fields: [employmentStatusId], references: [id], onDelete: Restrict)
+  department            Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  team                  Team?           @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  role                  Role?           @relation("EmployeeRole", fields: [roleId], references: [id], onDelete: SetNull)
+  reportingManager      Employee?       @relation("EmployeeReports", fields: [reportingManagerId], references: [id], onDelete: SetNull)
+  directReports         Employee[]      @relation("EmployeeReports")
+  user                  User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  documents             EmployeeDocument[]
+
+  @@index([departmentId])
+  @@index([teamId])
+  @@index([roleId])
+  @@index([designationId])
+  @@index([employmentTypeId])
+  @@index([employmentStatusId])
+  @@index([reportingManagerId])
+  @@index([joiningDate])
+  @@index([fullName])
+  @@map("employees")
+}
+
+model EmployeeDocument {
+  id         String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  employeeId String                @map("employee_id") @db.Uuid
+  type       EmployeeDocumentType
+  fileName   String                @map("file_name")
+  mimeType   String                @map("mime_type")
+  storageKey String                @map("storage_key")
+  fileSize   Int                   @map("file_size")
+  createdAt  DateTime              @default(now()) @map("created_at")
+  employee   Employee              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("employee_documents")
+}
