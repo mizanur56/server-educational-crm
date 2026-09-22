@@ -460,6 +460,100 @@ async function seedAuditLogs(adminUserId: string, actorIds: string[]) {
   await prisma.auditLog.createMany({ data: rows })
 }
 
+async function seedPipelineDemo(userIds: string[]) {
+  const leadCount = await prisma.lead.count()
+  if (leadCount > 0) {
+    return
+  }
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, fullName: true, username: true },
+  })
+  const byUsername = new Map(users.map((user) => [user.username, user]))
+  const pick = (username: string) => byUsername.get(username)
+
+  await prisma.lead.createMany({
+    data: [
+      { code: 'L-1001', name: 'Ayesha Siddiqua', phone: '01711-445566', country: 'Canada', source: 'Meta', ownerName: pick('sarah')?.fullName || 'Sarah Ahmed', ownerId: pick('sarah')?.id, status: 'New', updatedAt: daysAgo(0) },
+      { code: 'L-1002', name: 'Hasan Mahmud', phone: '01822-778899', country: 'UK', source: 'Website', ownerName: pick('rafiq')?.fullName || 'Rafiq Khan', ownerId: pick('rafiq')?.id, status: 'Contacted', updatedAt: daysAgo(0) },
+      { code: 'L-1003', name: 'Nusrat Jahan', phone: '01933-112233', country: 'Australia', source: 'WhatsApp', ownerName: pick('sarah')?.fullName || 'Sarah Ahmed', ownerId: pick('sarah')?.id, status: 'Counselling', updatedAt: daysAgo(1) },
+      { code: 'L-1004', name: 'Omar Faruk', phone: '01655-998877', country: 'Canada', source: 'Referral', ownerName: pick('call.exec')?.fullName || 'Fatima Begum', ownerId: pick('call.exec')?.id, status: 'Interested', updatedAt: daysAgo(1) },
+      { code: 'L-1005', name: 'Mithila Chowdhury', phone: '01566-334455', country: 'USA', source: 'Campaign', ownerName: pick('imran')?.fullName || 'Imran Ali', ownerId: pick('imran')?.id, status: 'Offer Sent', updatedAt: daysAgo(2) },
+      { code: 'L-1006', name: 'Sabbir Ahmed', phone: '01777-221100', country: 'Germany', source: 'Phone', ownerName: pick('sales.lead')?.fullName || 'Tanvir Islam', ownerId: pick('sales.lead')?.id, status: 'Follow-up', updatedAt: daysAgo(3) },
+      { code: 'L-1007', name: 'Ruma Akter', phone: '01888-667700', country: 'Canada', source: 'Walk-in', ownerName: pick('manager')?.fullName || 'Karim Hossain', ownerId: pick('manager')?.id, status: 'Converted', updatedAt: daysAgo(4) },
+      { code: 'L-1008', name: 'Tareq Hasan', phone: '01999-445500', country: 'UK', source: 'Meta', ownerName: pick('call.exec')?.fullName || 'Fatima Begum', ownerId: pick('call.exec')?.id, status: 'Lost', updatedAt: daysAgo(5) },
+      { code: 'L-1009', name: 'Farzana Kabir', phone: '01311-556677', country: 'Canada', source: 'Website', ownerName: pick('sarah')?.fullName || 'Sarah Ahmed', ownerId: pick('sarah')?.id, status: 'New', updatedAt: daysAgo(0) },
+      { code: 'L-1010', name: 'Rakibul Hasan', phone: '01422-889900', country: 'Australia', source: 'Referral', ownerName: pick('rafiq')?.fullName || 'Rafiq Khan', ownerId: pick('rafiq')?.id, status: 'Contacted', updatedAt: daysAgo(2) },
+      { code: 'L-1011', name: 'Shila Begum', phone: '01533-667788', country: 'UK', source: 'WhatsApp', ownerName: pick('manager')?.fullName || 'Karim Hossain', ownerId: pick('manager')?.id, status: 'Interested', updatedAt: daysAgo(3) },
+      { code: 'L-1012', name: 'Nayeem Chowdhury', phone: '01644-112244', country: 'USA', source: 'Campaign', ownerName: pick('imran')?.fullName || 'Imran Ali', ownerId: pick('imran')?.id, status: 'Counselling', updatedAt: daysAgo(4) },
+    ],
+  })
+
+  await prisma.application.createMany({
+    data: [
+      { code: 'APP-3001', applicantName: 'Ruma Akter', university: 'University of Toronto', program: 'Computer Science', intake: 'Sep 2027', counsellorName: pick('sarah')?.fullName, counsellorId: pick('sarah')?.id, status: 'In Review', submittedAt: dateOnly('2026-09-12') },
+      { code: 'APP-3002', applicantName: 'Mithila Chowdhury', university: 'McGill University', program: 'Business Administration', intake: 'Jan 2027', counsellorName: pick('rafiq')?.fullName, counsellorId: pick('rafiq')?.id, status: 'Submitted', submittedAt: dateOnly('2026-09-10') },
+      { code: 'APP-3003', applicantName: 'Hasan Mahmud', university: 'University of Alberta', program: 'Data Analytics', intake: 'May 2027', counsellorName: pick('sarah')?.fullName, counsellorId: pick('sarah')?.id, status: 'Offer Sent', submittedAt: dateOnly('2026-09-05') },
+      { code: 'APP-3004', applicantName: 'Omar Faruk', university: 'University of Manchester', program: 'International Business', intake: 'Sep 2027', counsellorName: pick('manager')?.fullName, counsellorId: pick('manager')?.id, status: 'Processing', submittedAt: dateOnly('2026-09-01') },
+      { code: 'APP-3005', applicantName: 'Nusrat Jahan', university: 'University of Sydney', program: 'Nursing', intake: 'Jan 2028', counsellorName: pick('sales.lead')?.fullName, counsellorId: pick('sales.lead')?.id, status: 'Draft', submittedAt: null },
+      { code: 'APP-3006', applicantName: 'Farzana Kabir', university: 'UBC', program: 'Software Engineering', intake: 'Sep 2027', counsellorName: pick('sarah')?.fullName, counsellorId: pick('sarah')?.id, status: 'Submitted', submittedAt: dateOnly('2026-09-15') },
+    ],
+  })
+
+  await prisma.student.createMany({
+    data: [
+      { studentCode: 'STU-2401', name: 'Farhana Islam', destination: 'Canada', program: 'BSc Computer Science', counsellorName: pick('sarah')?.fullName, counsellorId: pick('sarah')?.id, status: 'Enrolled', enrolledAt: dateOnly('2026-01-15') },
+      { studentCode: 'STU-2402', name: 'Mehedi Hasan', destination: 'UK', program: 'MSc Data Science', counsellorName: pick('rafiq')?.fullName, counsellorId: pick('rafiq')?.id, status: 'Active', enrolledAt: dateOnly('2025-09-01') },
+      { studentCode: 'STU-2403', name: 'Sadia Rahman', destination: 'Australia', program: 'MBA', counsellorName: pick('manager')?.fullName, counsellorId: pick('manager')?.id, status: 'Active', enrolledAt: dateOnly('2025-05-01') },
+      { studentCode: 'STU-2404', name: 'Jubayer Alam', destination: 'Canada', program: 'Diploma IT', counsellorName: pick('sales.lead')?.fullName, counsellorId: pick('sales.lead')?.id, status: 'Completed', enrolledAt: dateOnly('2025-01-10') },
+      { studentCode: 'STU-2405', name: 'Anika Sultana', destination: 'Germany', program: 'BEng Mechanical', counsellorName: pick('sarah')?.fullName, counsellorId: pick('sarah')?.id, status: 'Active', enrolledAt: dateOnly('2026-05-01') },
+    ],
+  })
+
+  await prisma.crmDocument.createMany({
+    data: [
+      { ownerName: 'Ayesha Siddiqua', docType: 'Passport', category: 'Personal', uploadedBy: pick('sarah')?.fullName, uploadedById: pick('sarah')?.id, status: 'Verified', updatedAt: daysAgo(0) },
+      { ownerName: 'Hasan Mahmud', docType: 'Transcript', category: 'Academic', uploadedBy: pick('rafiq')?.fullName, uploadedById: pick('rafiq')?.id, status: 'Pending', updatedAt: daysAgo(1) },
+      { ownerName: 'Nusrat Jahan', docType: 'IELTS Scorecard', category: 'Language', uploadedBy: pick('sarah')?.fullName, uploadedById: pick('sarah')?.id, status: 'Verified', updatedAt: daysAgo(2) },
+      { ownerName: 'Omar Faruk', docType: 'Bank Statement', category: 'Financial', uploadedBy: pick('call.exec')?.fullName, uploadedById: pick('call.exec')?.id, status: 'Rejected', updatedAt: daysAgo(3) },
+      { ownerName: 'Mithila Chowdhury', docType: 'Offer Letter', category: 'Application', uploadedBy: pick('manager')?.fullName, uploadedById: pick('manager')?.id, status: 'Pending', updatedAt: daysAgo(4) },
+      { ownerName: 'Ruma Akter', docType: 'Degree Certificate', category: 'Academic', uploadedBy: pick('sarah')?.fullName, uploadedById: pick('sarah')?.id, status: 'Verified', updatedAt: daysAgo(5) },
+    ],
+  })
+
+  await prisma.payment.createMany({
+    data: [
+      { invoice: 'INV-5012', payerName: 'Ruma Akter', type: 'File Opening', amount: '৳ 15,000', method: 'bKash', status: 'Paid', paidAt: dateOnly('2026-09-20') },
+      { invoice: 'INV-5013', payerName: 'Hasan Mahmud', type: 'Service Charge', amount: '৳ 25,000', method: 'Bank Transfer', status: 'Partial', paidAt: dateOnly('2026-09-18') },
+      { invoice: 'INV-5014', payerName: 'Nusrat Jahan', type: 'Application Fee', amount: '৳ 8,500', method: 'Nagad', status: 'Pending', paidAt: null },
+      { invoice: 'INV-5015', payerName: 'Omar Faruk', type: 'Service Charge', amount: '৳ 30,000', method: 'Cash', status: 'Paid', paidAt: dateOnly('2026-09-12') },
+      { invoice: 'INV-5016', payerName: 'Sabbir Ahmed', type: 'Custom Charge', amount: '৳ 5,000', method: 'Card', status: 'Failed', paidAt: dateOnly('2026-09-10') },
+      { invoice: 'INV-5017', payerName: 'Farzana Kabir', type: 'File Opening', amount: '৳ 15,000', method: 'Online Payment', status: 'Paid', paidAt: dateOnly('2026-09-21') },
+    ],
+  })
+
+  const due = (daysFromNow: number, hour: number) => {
+    const date = new Date()
+    date.setUTCDate(date.getUTCDate() + daysFromNow)
+    date.setUTCHours(hour, 0, 0, 0)
+    return date
+  }
+
+  await prisma.followUp.createMany({
+    data: [
+      { contactName: 'Ayesha Siddiqua', type: 'Call', ownerName: pick('sarah')?.fullName, ownerId: pick('sarah')?.id, dueAt: due(0, 17), priority: 'High', status: 'Due Soon' },
+      { contactName: 'Omar Faruk', type: 'WhatsApp', ownerName: pick('call.exec')?.fullName, ownerId: pick('call.exec')?.id, dueAt: due(1, 11), priority: 'Medium', status: 'Pending' },
+      { contactName: 'Hasan Mahmud', type: 'Document Collection', ownerName: pick('rafiq')?.fullName, ownerId: pick('rafiq')?.id, dueAt: due(2, 15), priority: 'High', status: 'Pending' },
+      { contactName: 'Nusrat Jahan', type: 'Counselling Follow-up', ownerName: pick('manager')?.fullName, ownerId: pick('manager')?.id, dueAt: due(3, 12), priority: 'Medium', status: 'Pending' },
+      { contactName: 'Tareq Hasan', type: 'Payment Follow-up', ownerName: pick('sales.lead')?.fullName, ownerId: pick('sales.lead')?.id, dueAt: due(-4, 10), priority: 'High', status: 'Overdue' },
+      { contactName: 'Farzana Kabir', type: 'Email', ownerName: pick('sarah')?.fullName, ownerId: pick('sarah')?.id, dueAt: due(1, 16), priority: 'Low', status: 'Pending' },
+    ],
+  })
+
+  console.log('Seeded pipeline demo: leads, applications, students, documents, payments, follow-ups')
+}
+
 async function main() {
   const email = normalizeEmail(process.env.SEED_ADMIN_EMAIL || ROOT_ADMIN.email)
   const username = normalizeUsername(process.env.SEED_ADMIN_USERNAME || ROOT_ADMIN.username)
@@ -680,6 +774,7 @@ async function main() {
 
   await seedActivities(seededUserIds)
   await seedAuditLogs(admin.id, seededUserIds)
+  await seedPipelineDemo(seededUserIds)
 
   const permissionCount = await prisma.rolePermission.count({ where: { roleId: adminRole.id } })
   console.log(`Seeded root administrator ${admin.email} (${admin.username})`)

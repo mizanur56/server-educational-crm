@@ -132,6 +132,11 @@ model User {
   masterDataCreated   MasterDataItem[]       @relation("MasterDataCreatedBy")
   masterDataUpdated   MasterDataItem[]       @relation("MasterDataUpdatedBy")
   employee            Employee?
+  ownedLeads          Lead[]                 @relation("LeadOwner")
+  counselledApplications Application[]       @relation("ApplicationCounsellor")
+  counselledStudents  Student[]              @relation("StudentCounsellor")
+  uploadedDocuments   CrmDocument[]          @relation("DocumentUploader")
+  ownedFollowUps      FollowUp[]             @relation("FollowUpOwner")
 
   @@index([primaryRoleId])
   @@index([departmentId])
@@ -418,4 +423,118 @@ model EmployeeDocument {
 
   @@index([employeeId])
   @@map("employee_documents")
+}
+
+model Lead {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String   @unique
+  name      String
+  phone     String?
+  email     String?
+  country   String?
+  source    String?
+  ownerName String?  @map("owner_name")
+  ownerId   String?  @map("owner_id") @db.Uuid
+  status    String
+  notes     String?  @db.Text
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  owner     User?    @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([ownerId])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model Application {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String   @unique
+  applicantName   String   @map("applicant_name")
+  university      String?
+  program         String?
+  intake          String?
+  counsellorName  String?  @map("counsellor_name")
+  counsellorId    String?  @map("counsellor_id") @db.Uuid
+  status          String
+  submittedAt     DateTime? @map("submitted_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  counsellor      User?    @relation("ApplicationCounsellor", fields: [counsellorId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([counsellorId])
+  @@map("applications")
+}
+
+model Student {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  studentCode    String   @unique @map("student_code")
+  name           String
+  destination    String?
+  program        String?
+  counsellorName String?  @map("counsellor_name")
+  counsellorId   String?  @map("counsellor_id") @db.Uuid
+  status         String
+  enrolledAt     DateTime? @map("enrolled_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  counsellor     User?    @relation("StudentCounsellor", fields: [counsellorId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([counsellorId])
+  @@map("students")
+}
+
+model CrmDocument {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerName    String   @map("owner_name")
+  docType      String   @map("doc_type")
+  category     String?
+  uploadedBy   String?  @map("uploaded_by")
+  uploadedById String?  @map("uploaded_by_id") @db.Uuid
+  status       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  uploader     User?    @relation("DocumentUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([uploadedById])
+  @@map("crm_documents")
+}
+
+model Payment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoice   String   @unique
+  payerName String   @map("payer_name")
+  type      String
+  amount    String
+  method    String?
+  status    String
+  paidAt    DateTime? @map("paid_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model FollowUp {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  contactName String   @map("contact_name")
+  type        String
+  ownerName   String?  @map("owner_name")
+  ownerId     String?  @map("owner_id") @db.Uuid
+  dueAt       DateTime? @map("due_at")
+  priority    String?
+  status      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  owner       User?    @relation("FollowUpOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([ownerId])
+  @@index([dueAt])
+  @@map("follow_ups")
 }
