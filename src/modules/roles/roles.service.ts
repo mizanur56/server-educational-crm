@@ -1,8 +1,8 @@
-import type { Prisma, RecordStatus } from '../../lib/prisma-client.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { httpError } from '../../lib/http-error.ts'
-import { prisma } from '../../lib/prisma.ts'
-import type { AuthContext } from '../auth/session.service.ts'
+import type { Prisma, RecordStatus } from '../../lib/prisma-client'
+import { writeAuditLog } from '../../lib/audit'
+import { httpError } from '../../lib/http-error'
+import { prisma } from '../../lib/prisma'
+import type { AuthContext } from '../auth/session.service'
 
 function slugify(value: string) {
   return value

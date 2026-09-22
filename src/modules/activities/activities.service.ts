@@ -1,9 +1,9 @@
-import { writeAuditLog } from '../../lib/audit.js'
-import { httpError } from '../../lib/http-error.js'
-import type { Prisma } from '../../lib/prisma-client.ts'
-import { prisma } from '../../lib/prisma.js'
+import { writeAuditLog } from '../../lib/audit'
+import { httpError } from '../../lib/http-error'
+import type { Prisma } from '../../lib/prisma-client'
+import { prisma } from '../../lib/prisma'
 
-import type { AuthContext } from '../auth/session.service.ts'
+import type { AuthContext } from '../auth/session.service'
 
 export const ACTIVITY_TYPES = ['CALL', 'MESSAGE', 'MEETING', 'EMAIL', 'NOTE', 'FOLLOW_UP'] as const
 export type ActivityTypeValue = (typeof ACTIVITY_TYPES)[number]

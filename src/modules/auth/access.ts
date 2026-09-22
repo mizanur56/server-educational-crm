@@ -1,5 +1,5 @@
-import type { DataScope, OverrideEffect } from '../../lib/prisma-client.ts'
-import { ROLE_DEFAULTS, SCOPE_RESOURCES, permissionKey } from './permission-catalog.ts'
+import type { DataScope, OverrideEffect } from '../../lib/prisma-client'
+import { ROLE_DEFAULTS, SCOPE_RESOURCES, permissionKey } from './permission-catalog'
 
 export type PermissionGrant = {
   resource: string

@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { requestIp, requestUserAgent, routeParam } from '../../lib/request.ts'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
+import { requestIp, requestUserAgent, routeParam } from '../../lib/request'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
 import {
   createRole,
   deleteRole,
@@ -9,7 +9,7 @@ import {
   setRolePermissions,
   updateRole,
   updateRoleStatus,
-} from './roles.service.ts'
+} from './roles.service'
 
 export const rolesRouter = Router()
 

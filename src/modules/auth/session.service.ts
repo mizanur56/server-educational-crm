@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto'
-import type { DataScope, OverrideEffect } from '../../lib/prisma-client.ts'
-import { config, SESSION_COOKIE } from '../../config.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { mergePermissions, mergeScopes, type ScopeMap } from './access.ts'
+import type { DataScope, OverrideEffect } from '../../lib/prisma-client'
+import { config, SESSION_COOKIE } from '../../config'
+import { prisma } from '../../lib/prisma'
+import { mergePermissions, mergeScopes, type ScopeMap } from './access'
 
 export type AuthUser = {
   id: string

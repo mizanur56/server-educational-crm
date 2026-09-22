@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto'
-import type { Prisma, UserStatus } from '../../lib/prisma-client.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { httpError } from '../../lib/http-error.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { defaultScopesForRole } from '../auth/access.ts'
-import { normalizeEmail, normalizeUsername } from '../auth/identifier.ts'
-import { hashPassword } from '../auth/password.ts'
-import { requestPasswordReset } from '../auth/password-reset.service.ts'
-import type { AuthContext } from '../auth/session.service.ts'
+import type { Prisma, UserStatus } from '../../lib/prisma-client'
+import { writeAuditLog } from '../../lib/audit'
+import { httpError } from '../../lib/http-error'
+import { prisma } from '../../lib/prisma'
+import { defaultScopesForRole } from '../auth/access'
+import { normalizeEmail, normalizeUsername } from '../auth/identifier'
+import { hashPassword } from '../auth/password'
+import { requestPasswordReset } from '../auth/password-reset.service'
+import type { AuthContext } from '../auth/session.service'
 import {
   destroyStoredUpload,
   DOCUMENT_FIELD_MAP,
@@ -16,7 +16,7 @@ import {
   saveDocuments,
   saveProfilePhoto,
   type DocumentFieldName,
-} from './employees.storage.ts'
+} from './employees.storage'
 
 const ENTITY = 'employee'
 

@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
-import cloudinary, { CLOUDINARY_FOLDER } from '../../config/cloudinary.ts'
-import { httpError } from '../../lib/http-error.ts'
+import cloudinary, { CLOUDINARY_FOLDER } from '../../config/cloudinary'
+import { httpError } from '../../lib/http-error'
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 export const UPLOAD_ROOT = path.resolve(process.cwd(), 'uploads', 'employees')

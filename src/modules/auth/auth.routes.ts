@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { SESSION_COOKIE } from '../../config.ts'
-import { requestIp, requestUserAgent } from '../../lib/request.ts'
-import { login, logout } from './auth.service.ts'
-import { changePassword, completePasswordReset, requestPasswordReset } from './password-reset.service.ts'
-import { requireAuth } from './require-auth.middleware.ts'
-import { clearCookieOptions } from './session.service.ts'
+import { SESSION_COOKIE } from '../../config'
+import { requestIp, requestUserAgent } from '../../lib/request'
+import { login, logout } from './auth.service'
+import { changePassword, completePasswordReset, requestPasswordReset } from './password-reset.service'
+import { requireAuth } from './require-auth.middleware'
+import { clearCookieOptions } from './session.service'
 
 export const authRouter = Router()
 

@@ -1,9 +1,9 @@
 import 'dotenv/config'
-import { PrismaClient } from '../generated/prisma/index.js'
-import { normalizeEmail, normalizeUsername } from '../src/modules/auth/identifier.js'
-import { PERMISSION_CATALOG, ROLE_DEFAULTS } from '../src/modules/auth/permission-catalog.js'
-import { getMasterDataCategory, MASTER_DATA_SEEDS } from '../src/modules/master-data/master-data.catalog.js'
-import { hashPassword } from '../src/modules/auth/password.js'
+import { PrismaClient } from '../generated/prisma/index'
+import { normalizeEmail, normalizeUsername } from '../src/modules/auth/identifier'
+import { PERMISSION_CATALOG, ROLE_DEFAULTS } from '../src/modules/auth/permission-catalog'
+import { getMasterDataCategory, MASTER_DATA_SEEDS } from '../src/modules/master-data/master-data.catalog'
+import { hashPassword } from '../src/modules/auth/password'
 
 
 const prisma = new PrismaClient()

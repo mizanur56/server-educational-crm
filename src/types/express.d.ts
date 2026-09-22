@@ -1,4 +1,4 @@
-import type { AuthContext } from '../modules/auth/session.service.ts'
+import type { AuthContext } from '../modules/auth/session.service'
 
 declare global {
   namespace Express {

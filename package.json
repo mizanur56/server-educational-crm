@@ -2,16 +2,20 @@
   "name": "server.educational.crm",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc -b",
-    "start": "node dist/index.js",
-    "postinstall": "prisma generate",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "prod": "NODE_ENV=production node ./dist/server.js",
+    "migrate": "npx prisma migrate dev",
+    "start": "node dist/server.js",
+    "push": "npx prisma db push",
+    "generate": "prisma generate --generator client",
+    "generate:erd": "ts-node --transpile-only src/scripts/generateErDiagram.ts",
+    "migrate:media-r2": "ts-node --transpile-only -r tsconfig-paths/register scripts/migrate-uploads-to-r2.ts",
+    "studio": "npx prisma studio",
+    "build": "tsc",
+    "validate": "npx prisma validate",
+    "seed": "ts-node --transpile-only prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
@@ -31,10 +35,12 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^24.5.2",
     "prisma": "^6.16.2",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "ts-node --transpile-only prisma/seed.ts"
   }
 }

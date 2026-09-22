@@ -1,6 +1,6 @@
 import type { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
-import cloudinary, { CLOUDINARY_FOLDER } from '../../config/cloudinary.ts'
-import { httpError } from '../../lib/http-error.ts'
+import cloudinary, { CLOUDINARY_FOLDER } from '../../config/cloudinary'
+import { httpError } from '../../lib/http-error'
 
 export const MAX_USER_PHOTO_BYTES = 5 * 1024 * 1024
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg'])

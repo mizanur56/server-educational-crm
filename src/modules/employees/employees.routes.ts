@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { httpError } from '../../lib/http-error.ts'
-import { requestIp, requestUserAgent, routeParam } from '../../lib/request.ts'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
+import { httpError } from '../../lib/http-error'
+import { requestIp, requestUserAgent, routeParam } from '../../lib/request'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
 import {
   createEmployee,
   deleteEmployeeDocument,
@@ -16,8 +16,8 @@ import {
   updateEmployeeStatus,
   uploadEmployeeDocument,
   type EmployeeUploads,
-} from './employees.service.ts'
-import { DOCUMENT_FIELD_MAP, MAX_UPLOAD_BYTES } from './employees.storage.ts'
+} from './employees.service'
+import { DOCUMENT_FIELD_MAP, MAX_UPLOAD_BYTES } from './employees.storage'
 
 export const employeesRouter = Router()
 

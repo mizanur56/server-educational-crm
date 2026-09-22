@@ -1,8 +1,8 @@
-import type { Prisma } from '../../lib/prisma-client.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { hasPermission } from '../auth/access.ts'
-import type { AuthContext } from '../auth/session.service.ts'
-import { MASTER_DATA_CATEGORY_MAP } from '../master-data/master-data.catalog.ts'
+import type { Prisma } from '../../lib/prisma-client'
+import { prisma } from '../../lib/prisma'
+import { hasPermission } from '../auth/access'
+import type { AuthContext } from '../auth/session.service'
+import { MASTER_DATA_CATEGORY_MAP } from '../master-data/master-data.catalog'
 
 const LIMIT = 6
 
@@ -318,8 +318,8 @@ export async function globalSearch(auth: AuthContext, rawQuery: string): Promise
             rows.map((row) => ({
               id: `activity:${row.id}`,
               type: 'activity' as const,
-              title: row.relatedName || row.type.replaceAll('_', ' '),
-              subtitle: [row.type.replaceAll('_', ' '), row.outcome || row.notes].filter(Boolean).join(' · '),
+              title: row.relatedName || String(row.type).replace(/_/g, ' '),
+              subtitle: [String(row.type).replace(/_/g, ' '), row.outcome || row.notes].filter(Boolean).join(' · '),
               href: `/activity-history?q=${encodeURIComponent(row.relatedName || query)}`,
               group: 'Activity',
             })),
@@ -359,7 +359,7 @@ export async function globalSearch(auth: AuthContext, rawQuery: string): Promise
             rows.map((row) => ({
               id: `audit:${row.id}`,
               type: 'audit' as const,
-              title: row.action.replaceAll('_', ' '),
+              title: row.action.replace(/_/g, ' '),
               subtitle: [row.entityType, row.user?.fullName].filter(Boolean).join(' · '),
               href: `/audit-logs?q=${encodeURIComponent(row.action)}`,
               group: 'Audit Log',

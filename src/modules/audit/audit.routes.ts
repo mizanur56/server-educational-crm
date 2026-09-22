@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import type { Prisma } from '../../lib/prisma-client.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
+import type { Prisma } from '../../lib/prisma-client'
+import { prisma } from '../../lib/prisma'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
 
 export const auditRouter = Router()
 

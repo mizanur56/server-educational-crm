@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { serializeAuth } from '../auth/auth.service.ts'
-import { requireAuth } from '../auth/require-auth.middleware.ts'
+import { serializeAuth } from '../auth/auth.service'
+import { requireAuth } from '../auth/require-auth.middleware'
 
 export const meRouter = Router()
 

@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import multer from 'multer'
 import type { NextFunction, Request, Response } from 'express'
-import { requireAuth } from '../auth/require-auth.middleware.ts'
-import { hasPermission } from '../auth/access.ts'
-import { httpError } from '../../lib/http-error.ts'
-import { requestIp, requestUserAgent } from '../../lib/request.ts'
-import { createItem, deleteItem, getItem, listCategories, listDepartmentsForUsers, listHistory, listItems, listOptions, listTeamsForUsers, updateItem } from './master-data.service.ts'
-import { getMasterDataCategory } from './master-data.catalog.ts'
-import { buildExport, importItems, parseImportFile } from './master-data.import.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
+import { requireAuth } from '../auth/require-auth.middleware'
+import { hasPermission } from '../auth/access'
+import { httpError } from '../../lib/http-error'
+import { requestIp, requestUserAgent } from '../../lib/request'
+import { createItem, deleteItem, getItem, listCategories, listDepartmentsForUsers, listHistory, listItems, listOptions, listTeamsForUsers, updateItem } from './master-data.service'
+import { getMasterDataCategory } from './master-data.catalog'
+import { buildExport, importItems, parseImportFile } from './master-data.import'
+import { writeAuditLog } from '../../lib/audit'
 export const masterDataRouter = Router()
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
 

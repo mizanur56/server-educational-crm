@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
-import { createActivity, listActivityFeed, recordActivityExport } from './activities.service.ts'
-import { requestIp, requestUserAgent } from '../../lib/request.ts'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
+import { createActivity, listActivityFeed, recordActivityExport } from './activities.service'
+import { requestIp, requestUserAgent } from '../../lib/request'
 
 
 export const activitiesRouter = Router()

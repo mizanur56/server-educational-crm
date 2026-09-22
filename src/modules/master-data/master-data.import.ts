@@ -1,9 +1,9 @@
 import ExcelJS from 'exceljs'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { httpError } from '../../lib/http-error.ts'
-import type { AuthContext } from '../auth/session.service.ts'
-import { categoryOrThrow, createItem, listItems, type AuditMeta, type ItemRecord } from './master-data.service.ts'
-import type { MasterDataCategory } from './master-data.catalog.ts'
+import { writeAuditLog } from '../../lib/audit'
+import { httpError } from '../../lib/http-error'
+import type { AuthContext } from '../auth/session.service'
+import { categoryOrThrow, createItem, listItems, type AuditMeta, type ItemRecord } from './master-data.service'
+import type { MasterDataCategory } from './master-data.catalog'
 
 type ImportRow = {
   name?: string

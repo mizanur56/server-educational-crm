@@ -1,10 +1,10 @@
 import { Router, type NextFunction, type Request, type Response } from 'express'
 import multer from 'multer'
-import type { UserStatus } from '../../lib/prisma-client.ts'
-import { httpError } from '../../lib/http-error.ts'
-import { requestIp, requestUserAgent, routeParam } from '../../lib/request.ts'
-import { requestPasswordReset } from '../auth/password-reset.service.ts'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
+import type { UserStatus } from '../../lib/prisma-client'
+import { httpError } from '../../lib/http-error'
+import { requestIp, requestUserAgent, routeParam } from '../../lib/request'
+import { requestPasswordReset } from '../auth/password-reset.service'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
 import {
   createUser,
   forceLogoutAll,
@@ -18,8 +18,8 @@ import {
   updateUser,
   updateUserPhoto,
   updateUserStatus,
-} from './users.service.ts'
-import { MAX_USER_PHOTO_BYTES } from './users.storage.ts'
+} from './users.service'
+import { MAX_USER_PHOTO_BYTES } from './users.storage'
 
 export const usersRouter = Router()
 

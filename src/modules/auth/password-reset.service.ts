@@ -1,9 +1,9 @@
 import { createHash, randomBytes } from 'node:crypto'
-import { config } from '../../config.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { isEmailIdentifier, normalizeEmail, normalizeIdentifier, normalizeUsername } from './identifier.ts'
-import { hashPassword } from './password.ts'
+import { config } from '../../config'
+import { writeAuditLog } from '../../lib/audit'
+import { prisma } from '../../lib/prisma'
+import { isEmailIdentifier, normalizeEmail, normalizeIdentifier, normalizeUsername } from './identifier'
+import { hashPassword } from './password'
 
 function hashResetToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -174,7 +174,7 @@ export async function changePassword(input: {
   }
 
   const user = await prisma.user.findUniqueOrThrow({ where: { id: input.userId } })
-  const { verifyPassword } = await import('./password.ts')
+  const { verifyPassword } = await import('./password')
   const matches = await verifyPassword(user.passwordHash, currentPassword)
 
   if (!matches) {

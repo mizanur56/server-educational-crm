@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
-import { hasPermission } from './access.ts'
+import { hasPermission } from './access'
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!req.auth?.user) {

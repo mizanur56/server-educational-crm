@@ -1,10 +1,10 @@
-import type { Prisma, RecordStatus } from '../../lib/prisma-client.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { clearCatalogCache, getCatalogCache, setCatalogCache } from '../../lib/catalog-cache.ts'
-import { httpError } from '../../lib/http-error.ts'
-import { prisma } from '../../lib/prisma.ts'
-import type { AuthContext } from '../auth/session.service.ts'
-import { getMasterDataCategory, MASTER_DATA_CATEGORIES, type MasterDataCategory } from './master-data.catalog.ts'
+import type { Prisma, RecordStatus } from '../../lib/prisma-client'
+import { writeAuditLog } from '../../lib/audit'
+import { clearCatalogCache, getCatalogCache, setCatalogCache } from '../../lib/catalog-cache'
+import { httpError } from '../../lib/http-error'
+import { prisma } from '../../lib/prisma'
+import type { AuthContext } from '../auth/session.service'
+import { getMasterDataCategory, MASTER_DATA_CATEGORIES, type MasterDataCategory } from './master-data.catalog'
 
 const ENTITY = 'master_data'
 const BEHAVIOR_KEYS = new Set(['converted', 'lost', 'closed'])

@@ -1,10 +1,10 @@
-import { config } from '../../config.ts'
-import { writeAuditLog } from '../../lib/audit.ts'
-import { prisma } from '../../lib/prisma.ts'
-import { dummyPasswordHash } from './dummy-hash.ts'
-import { isEmailIdentifier, normalizeEmail, normalizeIdentifier, normalizeUsername } from './identifier.ts'
-import { verifyPassword } from './password.ts'
-import { buildAuthContext, cookieOptions, createSession, revokeSession, userAuthInclude, type AuthContext } from './session.service.ts'
+import { config } from '../../config'
+import { writeAuditLog } from '../../lib/audit'
+import { prisma } from '../../lib/prisma'
+import { dummyPasswordHash } from './dummy-hash'
+import { isEmailIdentifier, normalizeEmail, normalizeIdentifier, normalizeUsername } from './identifier'
+import { verifyPassword } from './password'
+import { buildAuthContext, cookieOptions, createSession, revokeSession, userAuthInclude, type AuthContext } from './session.service'
 
 const GENERIC_LOGIN_ERROR = 'Invalid email/username or password'
 

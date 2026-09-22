@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { requireAuth } from '../auth/require-auth.middleware.ts'
-import { globalSearch } from './search.service.ts'
+import { requireAuth } from '../auth/require-auth.middleware'
+import { globalSearch } from './search.service'
 
 export const searchRouter = Router()
 

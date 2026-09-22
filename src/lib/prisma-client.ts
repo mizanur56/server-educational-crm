@@ -1,4 +1,4 @@
-export { Prisma, PrismaClient } from '../../generated/prisma/index.js'
+export { Prisma, PrismaClient } from '../../generated/prisma/index'
 export type {
   DataScope,
   OverrideEffect,
@@ -7,4 +7,4 @@ export type {
   Gender,
   MaritalStatus,
   EmployeeDocumentType,
-} from '../../generated/prisma/index.js'
+} from '../../generated/prisma/index'

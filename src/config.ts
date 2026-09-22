@@ -1,3 +1,13 @@
+import dotenv from 'dotenv'
+import path from 'path'
+
+dotenv.config({ path: path.join(process.cwd(), '.env') })
+const nodeEnv = process.env.NODE_ENV || 'development'
+dotenv.config({
+  path: path.join(process.cwd(), `.env.${nodeEnv}`),
+  override: true,
+})
+
 export const SESSION_COOKIE = 'crm_session'
 
 function defaultClientOrigins() {
@@ -5,7 +15,7 @@ function defaultClientOrigins() {
     return process.env.CLIENT_ORIGIN
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  if (nodeEnv === 'production') {
     return 'https://admin-educational-crm.vercel.app'
   }
 
@@ -13,12 +23,13 @@ function defaultClientOrigins() {
 }
 
 export const config = {
+  env: nodeEnv,
   port: Number(process.env.PORT) || 4000,
   clientOrigins: defaultClientOrigins()
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
-  isProduction: process.env.NODE_ENV === 'production',
+  isProduction: nodeEnv === 'production',
   maxFailedLoginAttempts: Number(process.env.MAX_FAILED_LOGIN_ATTEMPTS) || 5,
   lockMinutes: Number(process.env.LOGIN_LOCK_MINUTES) || 15,
   sessionHours: Number(process.env.SESSION_HOURS) || 12,

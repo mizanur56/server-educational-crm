@@ -1,5 +1,5 @@
-import type { Prisma } from './prisma-client.ts'
-import { prisma } from './prisma.ts'
+import type { Prisma } from './prisma-client'
+import { prisma } from './prisma'
 
 export async function writeAuditLog(input: {
   userId?: string | null

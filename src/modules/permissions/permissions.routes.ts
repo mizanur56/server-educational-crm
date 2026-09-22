@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { prisma } from '../../lib/prisma.ts'
-import { requireAuth, requirePermission } from '../auth/require-auth.middleware.ts'
+import { prisma } from '../../lib/prisma'
+import { requireAuth, requirePermission } from '../auth/require-auth.middleware'
 
 export const permissionsRouter = Router()
 
