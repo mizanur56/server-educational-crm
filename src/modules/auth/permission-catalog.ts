@@ -83,8 +83,8 @@ export const ROLE_DEFAULTS: Record<
   }
 > = {
   admin: {
-    name: 'Admin',
-    description: 'Full system management access',
+    name: 'Administrator',
+    description: 'Fixed system administrator role with full access',
     isSystem: true,
     permissions: 'all',
     scopes: { lead: 'ALL', document: 'ALL', employee_performance: 'ALL' },
