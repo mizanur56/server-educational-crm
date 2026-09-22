@@ -218,61 +218,41 @@ async function upsertUserWithEmployee(input: {
 
   const byEmail = await prisma.user.findUnique({ where: { email } })
   const byUsername = await prisma.user.findUnique({ where: { username } })
-  const existing = byEmail || (byUsername && byUsername.email === email ? byUsername : byEmail)
 
-  let user
-  if (existing) {
-    if (byUsername && byUsername.id !== existing.id) {
-      throw new Error(`Username "${username}" is already taken by another user`)
-    }
-    user = await prisma.user.update({
-      where: { id: existing.id },
-      data: {
-        email,
-        username,
-        fullName: input.fullName,
-        mobile: input.mobile,
-        passwordHash: input.passwordHash,
-        status: 'ACTIVE',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        primaryRoleId: input.roleId,
-        departmentId: input.departmentId,
-        teamId: input.teamId,
-      },
-    })
-  } else if (byUsername) {
-    user = await prisma.user.update({
-      where: { id: byUsername.id },
-      data: {
-        email,
-        username,
-        fullName: input.fullName,
-        mobile: input.mobile,
-        passwordHash: input.passwordHash,
-        status: 'ACTIVE',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        primaryRoleId: input.roleId,
-        departmentId: input.departmentId,
-        teamId: input.teamId,
-      },
-    })
-  } else {
-    user = await prisma.user.create({
-      data: {
-        email,
-        username,
-        fullName: input.fullName,
-        mobile: input.mobile,
-        passwordHash: input.passwordHash,
-        status: 'ACTIVE',
-        primaryRoleId: input.roleId,
-        departmentId: input.departmentId,
-        teamId: input.teamId,
-      },
-    })
+  if (byEmail && byUsername && byEmail.id !== byUsername.id) {
+    throw new Error(`Cannot seed user: email "${email}" and username "${username}" belong to different accounts`)
   }
+
+  const existing = byEmail || byUsername
+  const userData = {
+    email,
+    username,
+    fullName: input.fullName,
+    mobile: input.mobile,
+    passwordHash: input.passwordHash,
+    status: 'ACTIVE' as const,
+    failedLoginAttempts: 0,
+    lockedUntil: null,
+    primaryRoleId: input.roleId,
+    departmentId: input.departmentId,
+    teamId: input.teamId,
+  }
+
+  const user = existing
+    ? await prisma.user.update({ where: { id: existing.id }, data: userData })
+    : await prisma.user.create({
+        data: {
+          email,
+          username,
+          fullName: input.fullName,
+          mobile: input.mobile,
+          passwordHash: input.passwordHash,
+          status: 'ACTIVE',
+          primaryRoleId: input.roleId,
+          departmentId: input.departmentId,
+          teamId: input.teamId,
+        },
+      })
 
   const officialEmail = normalizeEmail(input.officialEmail || email)
   const existingEmployee =
@@ -581,9 +561,7 @@ async function main() {
   await upsertMasterDataSeeds()
 
   const adminRole = await prisma.role.findUniqueOrThrow({ where: { key: 'admin' } })
-  const counsellingDept = await prisma.department.findUniqueOrThrow({ where: { key: 'counselling' } })
   const operationsDept = await prisma.department.findUniqueOrThrow({ where: { key: 'operations' } })
-  const teamA = await prisma.team.findUniqueOrThrow({ where: { key: 'team_a' } })
   const docsTeam = await prisma.team.findUniqueOrThrow({ where: { key: 'docs_team' } })
 
   const administratorDesignation = await prisma.masterDataItem.findUniqueOrThrow({
@@ -692,14 +670,11 @@ async function main() {
     })
   }
 
-  // Keep root admin employee designation locked to system Administrator
   await prisma.employee.update({
     where: { id: adminEmployee.id },
     data: {
       designationId: administratorDesignation.id,
       roleId: adminRole.id,
-      departmentId: counsellingDept.id === operationsDept.id ? operationsDept.id : operationsDept.id,
-      teamId: docsTeam.id === teamA.id ? docsTeam.id : docsTeam.id,
     },
   })
 
