@@ -39,8 +39,6 @@ const userAuthInclude = {
   },
   permissionOverrides: { include: { permission: true } },
   dataScopes: true,
-  department: true,
-  team: true,
 } as const
 
 export function hashSessionToken(token: string) {
@@ -170,6 +168,7 @@ export async function loadAuthFromToken(token: string | undefined): Promise<Auth
 
   const session = await prisma.session.findUnique({
     where: { tokenHash: hashSessionToken(token) },
+    relationLoadStrategy: 'join',
     include: {
       user: { include: userAuthInclude },
     },
@@ -201,6 +200,29 @@ export async function revokeSession(sessionId: string) {
     where: { id: sessionId },
     data: { revokedAt: new Date() },
   })
+}
+
+/** Light logout path: revoke by cookie token without loading the auth graph. */
+export async function revokeSessionByToken(token: string | undefined) {
+  if (!token) {
+    return null
+  }
+
+  const session = await prisma.session.findUnique({
+    where: { tokenHash: hashSessionToken(token) },
+    select: { id: true, userId: true, revokedAt: true },
+  })
+
+  if (!session || session.revokedAt) {
+    return null
+  }
+
+  await prisma.session.update({
+    where: { id: session.id },
+    data: { revokedAt: new Date() },
+  })
+
+  return session
 }
 
 export async function revokeUserSessions(userId: string, exceptSessionId?: string) {

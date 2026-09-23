@@ -1,10 +1,11 @@
 import { Router } from 'express'
 import { SESSION_COOKIE } from '../../config'
+import { writeAuditLog } from '../../lib/audit'
 import { requestIp, requestUserAgent } from '../../lib/request'
-import { login, logout } from './auth.service'
+import { login } from './auth.service'
 import { changePassword, completePasswordReset, requestPasswordReset } from './password-reset.service'
 import { requireAuth } from './require-auth.middleware'
-import { clearCookieOptions } from './session.service'
+import { clearCookieOptions, revokeSessionByToken } from './session.service'
 
 export const authRouter = Router()
 
@@ -32,10 +33,17 @@ authRouter.post('/login', async (req, res, next) => {
 
 authRouter.post('/logout', async (req, res, next) => {
   try {
-    await logout(req.auth, {
-      ipAddress: requestIp(req),
-      userAgent: requestUserAgent(req),
-    })
+    const session = await revokeSessionByToken(req.cookies?.[SESSION_COOKIE])
+    if (session) {
+      void writeAuditLog({
+        userId: session.userId,
+        action: 'LOGOUT',
+        entityType: 'user',
+        entityId: session.userId,
+        ipAddress: requestIp(req),
+        userAgent: requestUserAgent(req),
+      }).catch((error) => console.error('Failed to write audit log', error))
+    }
     res.clearCookie(SESSION_COOKIE, clearCookieOptions())
     res.status(204).end()
   } catch (error) {

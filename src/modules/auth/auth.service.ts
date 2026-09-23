@@ -4,7 +4,14 @@ import { prisma } from '../../lib/prisma'
 import { dummyPasswordHash } from './dummy-hash'
 import { isEmailIdentifier, normalizeEmail, normalizeIdentifier, normalizeUsername } from './identifier'
 import { verifyPassword } from './password'
-import { buildAuthContext, cookieOptions, createSession, revokeSession, userAuthInclude, type AuthContext } from './session.service'
+import {
+  buildAuthContext,
+  cookieOptions,
+  createSession,
+  revokeSession,
+  userAuthInclude,
+  type AuthContext,
+} from './session.service'
 
 const GENERIC_LOGIN_ERROR = 'Invalid email/username or password'
 
@@ -14,6 +21,12 @@ export type LoginInput = {
   rememberMe: unknown
   ipAddress?: string
   userAgent?: string
+}
+
+function queueAuditLog(...args: Parameters<typeof writeAuditLog>) {
+  void writeAuditLog(...args).catch((error) => {
+    console.error('Failed to write audit log', error)
+  })
 }
 
 export async function login(input: LoginInput) {
@@ -30,14 +43,17 @@ export async function login(input: LoginInput) {
     }
   }
 
+  // Single joined query for credentials + auth graph (relationJoins → 1 DB round-trip).
   const user = isEmailIdentifier(identifier)
     ? await prisma.user.findUnique({
         where: { email: normalizeEmail(identifier) },
         include: userAuthInclude,
+        relationLoadStrategy: 'join',
       })
     : await prisma.user.findUnique({
         where: { username: normalizeUsername(identifier) },
         include: userAuthInclude,
+        relationLoadStrategy: 'join',
       })
 
   const passwordHash = user?.passwordHash ?? (await dummyPasswordHash)
@@ -51,15 +67,17 @@ export async function login(input: LoginInput) {
         ? new Date(Date.now() + config.lockMinutes * 60 * 1000)
         : user.lockedUntil
 
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedLoginAttempts: nextAttempts,
-          lockedUntil,
-        },
-      })
+      void prisma.user
+        .update({
+          where: { id: user.id },
+          data: {
+            failedLoginAttempts: nextAttempts,
+            lockedUntil,
+          },
+        })
+        .catch((error) => console.error('Failed to update login attempts', error))
 
-      await writeAuditLog({
+      queueAuditLog({
         userId: user.id,
         action: shouldLock ? 'LOGIN_LOCKED' : 'LOGIN_FAILURE',
         entityType: 'user',
@@ -69,7 +87,7 @@ export async function login(input: LoginInput) {
         metadata: { identifierType: isEmailIdentifier(identifier) ? 'email' : 'username' },
       })
     } else {
-      await writeAuditLog({
+      queueAuditLog({
         action: 'LOGIN_FAILURE',
         ipAddress,
         userAgent,
@@ -93,7 +111,7 @@ export async function login(input: LoginInput) {
   }
 
   if (user.lockedUntil && user.lockedUntil > new Date()) {
-    await writeAuditLog({
+    queueAuditLog({
       userId: user.id,
       action: 'LOGIN_DENIED',
       entityType: 'user',
@@ -110,7 +128,7 @@ export async function login(input: LoginInput) {
   }
 
   if (user.status === 'INACTIVE') {
-    await writeAuditLog({
+    queueAuditLog({
       userId: user.id,
       action: 'LOGIN_DENIED',
       entityType: 'user',
@@ -127,7 +145,7 @@ export async function login(input: LoginInput) {
   }
 
   if (user.status === 'SUSPENDED') {
-    await writeAuditLog({
+    queueAuditLog({
       userId: user.id,
       action: 'LOGIN_DENIED',
       entityType: 'user',
@@ -143,15 +161,7 @@ export async function login(input: LoginInput) {
     }
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      failedLoginAttempts: 0,
-      lockedUntil: null,
-      lastLoginAt: new Date(),
-    },
-  })
-
+  // Session create is required for the cookie; lastLogin clear + audit are not on the critical path.
   const session = await createSession({
     userId: user.id,
     rememberMe,
@@ -159,7 +169,18 @@ export async function login(input: LoginInput) {
     userAgent,
   })
 
-  await writeAuditLog({
+  void prisma.user
+    .update({
+      where: { id: user.id },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        lastLoginAt: new Date(),
+      },
+    })
+    .catch((error) => console.error('Failed to update last login', error))
+
+  queueAuditLog({
     userId: user.id,
     action: 'LOGIN_SUCCESS',
     entityType: 'user',
@@ -204,7 +225,7 @@ export async function logout(
   }
 
   await revokeSession(auth.sessionId)
-  await writeAuditLog({
+  queueAuditLog({
     userId: auth.user.id,
     action: 'LOGOUT',
     entityType: 'user',
